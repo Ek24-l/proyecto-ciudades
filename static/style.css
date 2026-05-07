@@ -1,34 +1,19 @@
-body {
-    font-family: Arial;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    text-align: center;
-}
-
-.container {
-    margin-top: 80px;
-}
-
-input, select {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 10px;
-    border: none;
-}
-
 button {
-    padding: 10px 20px;
+    margin-top: 15px;
+    padding: 12px 20px;
     background: #ff7eb3;
     border: none;
     border-radius: 10px;
     cursor: pointer;
+    font-size: 16px;
 }
 
 button:hover {
     background: #ff4f81;
+    transform: scale(1.05);
 }
 
-#resultado {
+h3 {
     margin-top: 20px;
-    font-size: 18px;
+    color: #fff;
 }

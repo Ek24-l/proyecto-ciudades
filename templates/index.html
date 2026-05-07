@@ -2,56 +2,107 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Rutas entre ciudades</title>
+    <title>Búsqueda de Rutas - Inteligencia Artificial</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Estilos rápidos para asegurar que se vea ordenado */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+        .container { max-width: 800px; margin: 50px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 200px; }
+        button { padding: 10px 25px; background-color: #ff69b4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #ff4da6; }
+        
+        /* Contenedores para cada algoritmo */
+        .algoritmo-card {
+            margin-top: 20px;
+            padding: 15px;
+            border-left: 5px solid #ff69b4;
+            background-color: #fff9fb;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .algoritmo-card h3 { margin: 0 0 10px 0; color: #d81b60; font-size: 1.1rem; border-bottom: 1px solid #ffe1ed; padding-bottom: 5px; }
+        .ruta-texto { font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #333; word-break: break-all; }
+        .costo-total { display: block; margin-top: 8px; color: #27ae60; font-weight: bold; }
+        .error { color: #e74c3c; font-weight: bold; text-align: center; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🗺️ Búsqueda de Rutas</h1>
+    <h1>Búsqueda de Rutas entre Ciudades</h1>
 
-    <input type="text" id="inicio" placeholder="Ej: CDMX">
-    <input type="text" id="objetivo" placeholder="Ej: Monterrey">
-
-    <select id="metodo">
-        <option value="recursiva">Recursiva</option>
-        <option value="profundidad">Profundidad</option>
-        <option value="costo">Costo Uniforme</option>
-    </select>
-
-    <button onclick="buscar()">Buscar</button>
+    <div class="input-group">
+        <input type="text" id="inicio" placeholder="Ej: CDMX">
+        <input type="text" id="objetivo" placeholder="Ej: Monterrey">
+        <button onclick="resolver()">Resolver</button>
+    </div>
 
     <div id="resultado"></div>
 </div>
 
 <script>
-async function buscar() {
+async function resolver() {
     const inicio = document.getElementById("inicio").value;
     const objetivo = document.getElementById("objetivo").value;
-    const metodo = document.getElementById("metodo").value;
+    const divResultado = document.getElementById("resultado");
 
-    const res = await fetch('/buscar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inicio, objetivo, metodo })
-    });
+    // Limpiar resultados anteriores y mostrar carga
+    divResultado.innerHTML = "<p style='text-align:center;'>Buscando rutas...</p>";
 
-    const data = await res.json();
+    try {
+        const res = await fetch('/resolver', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ inicio, objetivo })
+        });
 
-    let html = "";
+        const data = await res.json();
 
-    if (data.error) {
-        html = "❌ " + data.error;
-    } else {
-        if (data.camino) {
-            html += "<b>Camino:</b> " + data.camino.join(" → ");
+        if (data.error) {
+            divResultado.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+            return;
         }
-        if (data.costo !== undefined) {
-            html += "<br><b>Costo total:</b> " + data.costo;
+
+        let html = "";
+
+        // 1. Mostrar Resultado de Búsqueda Recursiva
+        html += `
+            <div class="algoritmo-card">
+                <h3>Algoritmo de Búsqueda Recursiva</h3>
+                <div class="ruta-texto">${data.recursiva ? data.recursiva.join(" → ") : "Sin ruta disponible"}</div>
+            </div>`;
+
+        // 2. Mostrar Resultado de Búsqueda en Profundidad (DFS)
+        html += `
+            <div class="algoritmo-card">
+                <h3>Algoritmo de Búsqueda en Profundidad (DFS)</h3>
+                <div class="ruta-texto">${data.profundidad ? data.profundidad.join(" → ") : "Sin ruta disponible"}</div>
+            </div>`;
+
+        // 3. Mostrar Resultado de Costo Uniforme
+        let rutaCosto = "Sin ruta disponible";
+        let detalleCosto = "";
+        
+        if (data.costo && data.costo.camino) {
+            rutaCosto = data.costo.camino.join(" → ");
+            detalleCosto = `<span class="costo-total">Costo total de la ruta: ${data.costo.costo} km</span>`;
         }
+
+        html += `
+            <div class="algoritmo-card" style="border-left-color: #27ae60;">
+                <h3>Algoritmo de Costo Uniforme (UCS)</h3>
+                <div class="ruta-texto">${rutaCosto}</div>
+                ${detalleCosto}
+            </div>`;
+
+        divResultado.innerHTML = html;
+
+    } catch (err) {
+        divResultado.innerHTML = `<p class="error">Error de conexión con el servidor Archcraft.</p>`;
     }
-
-    document.getElementById("resultado").innerHTML = html;
 }
 </script>
 
