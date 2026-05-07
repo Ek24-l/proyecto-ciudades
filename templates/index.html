@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Rutas entre ciudades</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>🗺️ Búsqueda de Rutas</h1>
+
+    <input type="text" id="inicio" placeholder="Ej: CDMX">
+    <input type="text" id="objetivo" placeholder="Ej: Monterrey">
+
+    <select id="metodo">
+        <option value="recursiva">Recursiva</option>
+        <option value="profundidad">Profundidad</option>
+        <option value="costo">Costo Uniforme</option>
+    </select>
+
+    <button onclick="buscar()">Buscar</button>
+
+    <div id="resultado"></div>
+</div>
+
+<script>
+async function buscar() {
+    const inicio = document.getElementById("inicio").value;
+    const objetivo = document.getElementById("objetivo").value;
+    const metodo = document.getElementById("metodo").value;
+
+    const res = await fetch('/buscar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inicio, objetivo, metodo })
+    });
+
+    const data = await res.json();
+
+    let html = "";
+
+    if (data.error) {
+        html = "❌ " + data.error;
+    } else {
+        if (data.camino) {
+            html += "<b>Camino:</b> " + data.camino.join(" → ");
+        }
+        if (data.costo !== undefined) {
+            html += "<br><b>Costo total:</b> " + data.costo;
+        }
+    }
+
+    document.getElementById("resultado").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
